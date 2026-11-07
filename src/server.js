@@ -9,6 +9,7 @@ import { createAgent, detectMode } from "./agent.js";
 import { LeadService } from "./leads.js";
 import { availableSlots } from "./scheduling.js";
 import { normalizePhone, twilioConfigured, validateTwilioSignature } from "./sms.js";
+import { createSetupChecker } from "./setup.js";
 
 const PUBLIC = path.join(ROOT, "public");
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png" };
@@ -94,7 +95,7 @@ const publicLead = (l) => ({ id: l.id, name: l.name, status: l.status, transcrip
 const publicBusiness = ({ id, name, agentName, phone, services, serviceArea, demo }) => ({ id, name, agentName, phone, services, serviceArea, demo: demo === true });
 
 // services: Map of business id -> LeadService
-export function createServer({ services, defaultId, env = process.env, limits = {} }) {
+export function createServer({ services, defaultId, env = process.env, limits = {}, setup = null }) {
   const pending = new Set(); // background work (incoming texts), so tests and shutdown can wait for it
   // Per visitor: new leads and chat messages. Stops one person from running up your AI bill.
   const leadLimit = rateLimiter({ limit: limits.leadsPerIp ?? 5, windowMs: 10 * 60 * 1000 });
@@ -124,6 +125,13 @@ export function createServer({ services, defaultId, env = process.env, limits = 
         const denied = adminDenied(req, url, env);
         if (denied) return send(res, denied[0], { error: denied[1] });
         return send(res, 200, [...services.values()].map((s) => ({ id: s.business.id, name: s.business.name, smsNumber: s.business.smsNumber || null })));
+      }
+
+      if (req.method === "GET" && p === "/api/admin/setup") {
+        const denied = adminDenied(req, url, env);
+        if (denied) return send(res, denied[0], { error: denied[1] });
+        if (!setup) return send(res, 404, { error: "setup checks not enabled" });
+        return send(res, 200, await setup({ refresh: url.searchParams.has("refresh") }));
       }
 
       const b = p.match(/^\/api\/b\/([a-z0-9-]+)(\/.*)$/);
@@ -209,10 +217,12 @@ export function buildServices({ businesses, store, agent, notify = webhookNotify
 if (import.meta.url === `file://${process.argv[1]}`) {
   const businesses = loadBusinesses();
   const defaultId = defaultBusinessId(businesses);
-  const store = new Store(process.env.DATA_FILE || path.join(ROOT, "data", "db.json"), { defaultBusinessId: defaultId });
+  const dataFile = process.env.DATA_FILE || path.join(ROOT, "data", "db.json");
+  const store = new Store(dataFile, { defaultBusinessId: defaultId });
   const services = buildServices({ businesses, store, agent: createAgent() });
+  const setup = createSetupChecker({ services, dataFile });
   const port = Number(process.env.PORT || 3000);
-  createServer({ services, defaultId }).listen(port, () => {
+  createServer({ services, defaultId, setup }).listen(port, () => {
     console.log(`LeadBot on http://localhost:${port}  (agent: ${detectMode()}, SMS: ${twilioConfigured() ? "on" : "off"})`);
     for (const b of businesses.values()) console.log(`  ${b.name}: /demo.html?b=${b.id}`);
   });

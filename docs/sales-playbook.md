@@ -77,7 +77,7 @@ If they don't sign up, delete their file after a few weeks.
 - **Setup:** $750, one time. For the first 1–2 clients, consider $0–$300 setup in exchange for a testimonial.
 - **Monthly:** $297. This is where the steady income is: 10 clients is about $3,000 a month.
 - **Guarantee:** "If it doesn't book at least one job you wouldn't have gotten in the first 30 days, the first month is free."
-- Take payment with Stripe payment links or invoices.
+- How to take payment, what to sign and what to set aside for taxes: [`getting-paid.md`](getting-paid.md) and [`service-agreement.md`](service-agreement.md).
 
 These prices are common in the automation-agency guides, not proven numbers. Adjust them after your first few calls.
 

@@ -9,6 +9,13 @@
 <header><strong id="title">Dashboard</strong><nav><a href="/">LeadBot</a><a id="demo-link" href="/demo.html">Live demo</a></nav></header>
 <main>
   <p id="picker-row" hidden><label for="picker">Business</label><select id="picker" class="picker"></select></p>
+  <details id="setup-box" class="card" open>
+    <summary><strong>Setup checklist</strong> <span id="setup-summary" class="muted"></span></summary>
+    <ul id="setup" class="checks"></ul>
+    <p class="muted" style="margin-bottom:0">Businesses on this server:</p>
+    <ul id="setup-biz" class="checks"></ul>
+    <button id="recheck" class="btn secondary" type="button">Check again</button>
+  </details>
   <div class="grid">
     <div class="card"><div class="muted">Leads</div><div class="stat" id="s-leads">–</div></div>
     <div class="card"><div class="muted">Booked</div><div class="stat" id="s-booked">–</div></div>
@@ -39,8 +46,27 @@ async function init() {
     document.getElementById("title").textContent = (current ? current.name : slug) + " dashboard";
     document.getElementById("demo-link").href = "/demo.html?b=" + encodeURIComponent(slug);
   } catch (e) { slug = slug || ""; }
+  loadSetup(false);
   load(); setInterval(load, 5000);
 }
+const ICON = { ok: "✓", warn: "!", error: "✗", off: "–" };
+async function loadSetup(refresh) {
+  const row = (c) => `<li class="check ${c.status}"><span class="icon" aria-hidden="true">${ICON[c.status]}</span><span><strong>${esc(c.label)}</strong><br><span class="muted">${esc(c.detail)}</span></span></li>`;
+  try {
+    const r = await get("/api/admin/setup" + (refresh ? "?refresh=1" : ""));
+    document.getElementById("setup").innerHTML = r.checks.map(row).join("");
+    document.getElementById("setup-biz").innerHTML = r.businesses.map(row).join("");
+    const all = [...r.checks, ...r.businesses];
+    const problems = all.filter(c => c.status === "error").length;
+    const warnings = all.filter(c => c.status === "warn").length;
+    const parts = [];
+    if (problems) parts.push(`${problems} problem${problems > 1 ? "s" : ""} to fix`);
+    if (warnings) parts.push(`${warnings} warning${warnings > 1 ? "s" : ""}`);
+    document.getElementById("setup-summary").textContent = parts.length ? "· " + parts.join(", ") : "· all good";
+    document.getElementById("setup-box").open = parts.length > 0;
+  } catch (e) { document.getElementById("setup").innerHTML = `<li class="muted">Couldn't load checks (${esc(e)}).</li>`; }
+}
+document.getElementById("recheck").addEventListener("click", () => loadSetup(true));
 async function load() {
   const api = `/api/b/${encodeURIComponent(slug)}/admin`;
   try {

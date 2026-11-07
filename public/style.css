@@ -33,3 +33,10 @@ footer { padding-top:48px; padding-bottom:32px; color:var(--muted); font-size:14
 .consent input { width:auto; margin-top:4px; }
 .picker { max-width:320px; }
 .banner { background:var(--lead); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:14px; }
+.checks { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px; }
+.check { display:flex; gap:10px; align-items:flex-start; }
+.check .icon { flex:none; width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px; background:var(--line); color:var(--ink); }
+.check.ok .icon { background:#1f6f5c; color:#fff; }
+.check.warn .icon { background:#b7791f; color:#fff; }
+.check.error .icon { background:#b42318; color:#fff; }
+details.card summary { cursor:pointer; }

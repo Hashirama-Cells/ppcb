@@ -60,6 +60,7 @@ You need this to send prospects a demo link, and for real clients.
    - `TWILIO_*`: for real texts.
 4. Click **Apply**. A few minutes later you get a web address like `https://leadbot-xxxx.onrender.com`.
 5. Open your service's **Environment** tab and copy the `ADMIN_TOKEN` that Render generated. Your dashboard is `https://leadbot-xxxx.onrender.com/dashboard.html?token=THAT_TOKEN`. Don't share that link.
+6. Look at the **Setup checklist** at the top of the dashboard. It tests your live settings (password, saving, AI key, Twilio) and says in plain words what to fix. Click **Check again** after changing anything.
 
 **Cost:** the blueprint uses Render's Starter plan (about $7/month) because saving leads needs a disk. The free plan works for demos, but it forgets leads whenever it restarts and is slow to wake up.
 

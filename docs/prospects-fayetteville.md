@@ -74,4 +74,4 @@ Send each message one at a time, never as a bulk email. If anyone says "not inte
 
 ## If someone says yes
 
-Book a 10-minute call and follow section 5 of `docs/sales-playbook.md`. Then tell Claude, who'll help you get them set up.
+Book a 10-minute call and follow section 5 of `docs/sales-playbook.md`. To get paid, follow `docs/getting-paid.md`: agreement, setup payment, then go live. Tell Claude when you reach that point, and Claude will help you get them set up.

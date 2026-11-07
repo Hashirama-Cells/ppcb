@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { availableSlots, formatSlot } from "./scheduling.js";
 
-const MODEL = process.env.LEADBOT_MODEL || "claude-opus-5-5";
+export const MODEL = process.env.LEADBOT_MODEL || "claude-opus-5-5";
 const MAX_TOOL_ROUNDS = 6;
 
 export function detectMode() {
