@@ -6,6 +6,7 @@ services:
     name: leadbot
     runtime: node
     plan: starter
+    branch: ccr-9d0ce78d-saszis # the branch with the code (this repo has no "main")
     buildCommand: npm ci --omit=dev
     startCommand: node src/server.js
     healthCheckPath: /api/health
