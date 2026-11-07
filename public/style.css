@@ -29,3 +29,6 @@ th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vert
 .stat { font-size:30px; font-weight:700; }
 .table-wrap { overflow-x:auto; }
 footer { padding-top:48px; padding-bottom:32px; color:var(--muted); font-size:14px; }
+.consent { display:flex; gap:8px; align-items:flex-start; font-weight:400; font-size:14px; color:var(--muted); }
+.consent input { width:auto; margin-top:4px; }
+.picker { max-width:320px; }

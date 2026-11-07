@@ -1,0 +1,61 @@
+{
+  "name": "{name}",
+  "agentName": "Riley",
+  "timezone": "{timezone}",
+  "phone": "{phone}",
+  "smsNumber": null,
+  "ownerPhone": null,
+  "serviceArea": [
+    "{city}"
+  ],
+  "services": [
+    {
+      "name": "Roof inspection",
+      "price": "free estimate",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Leak repair",
+      "price": "quoted after inspection",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Roof replacement estimate",
+      "price": "free estimate",
+      "durationMinutes": 90
+    },
+    {
+      "name": "Storm or hail damage check",
+      "price": "free inspection",
+      "durationMinutes": 60
+    }
+  ],
+  "hours": {
+    "mon": [
+      "08:00",
+      "17:00"
+    ],
+    "tue": [
+      "08:00",
+      "17:00"
+    ],
+    "wed": [
+      "08:00",
+      "17:00"
+    ],
+    "thu": [
+      "08:00",
+      "17:00"
+    ],
+    "fri": [
+      "08:00",
+      "17:00"
+    ],
+    "sat": null,
+    "sun": null
+  },
+  "slotMinutes": 120,
+  "emergencyNote": "For an active leak during a storm, call {phone} and we'll help you get it tarped.",
+  "bookingDaysAhead": 7,
+  "faq": []
+}

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header><strong id="biz">Demo business</strong><nav><a href="/">LeadBot</a><a href="/dashboard.html">Dashboard</a></nav></header>
+<header><strong id="biz">Loading…</strong><nav><a href="/">LeadBot</a></nav></header>
 <main>
   <p class="muted">You're a customer on this business's website. Fill in the form and the agent texts you back. The chat stands in for SMS.</p>
   <div class="grid">
@@ -16,6 +16,7 @@
       <label for="phone">Phone</label><input id="phone" name="phone" required value="(555) 010-7788">
       <label for="service">Service</label><select id="service" name="service"></select>
       <label for="message">What's going on?</label><textarea id="message" name="message" rows="3">Kitchen sink is draining really slowly.</textarea>
+      <label class="consent"><input type="checkbox" name="smsConsent" value="true" checked> <span>I agree to receive text messages about my request from <span class="biz-name">this business</span>. Msg &amp; data rates may apply. Reply STOP to opt out.</span></label>
       <p><button class="btn" type="submit">Send</button></p>
     </form>
     <div class="card">
@@ -28,6 +29,7 @@
 <script>
 const chat = document.getElementById("chat");
 let leadId = null;
+let api = null; // /api/b/<business>
 function bubble(role, text) {
   const d = document.createElement("div");
   d.className = "bubble " + role; d.textContent = text;
@@ -39,18 +41,31 @@ async function post(url, body) {
   if (!r.ok) throw new Error(data.error || "request failed");
   return data;
 }
-fetch("/api/business").then(r => r.json()).then(b => {
+(async () => {
+  const slug = new URLSearchParams(location.search).get("b") || (await (await fetch("/api/health")).json()).defaultBusiness;
+  api = `/api/b/${encodeURIComponent(slug)}`;
+  const r = await fetch(`${api}/business`);
+  if (!r.ok) { document.getElementById("biz").textContent = "Unknown business: " + slug; return; }
+  const b = await r.json();
+  document.title = `${b.name} – LeadBot demo`;
   document.getElementById("biz").textContent = b.name;
-  document.getElementById("service").innerHTML = b.services.map(s => `<option>${s.name}</option>`).join("");
-});
+  document.querySelectorAll(".biz-name").forEach(el => el.textContent = b.name);
+  const sel = document.getElementById("service");
+  for (const s of b.services) { const o = document.createElement("option"); o.textContent = s.name; sel.append(o); }
+  const msg = document.getElementById("message");
+  msg.value = "";
+  msg.placeholder = "Describe what you need";
+})();
 document.getElementById("form").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (!api) return;
   const body = Object.fromEntries(new FormData(e.target));
+  body.smsConsent = body.smsConsent === "true";
   e.target.querySelector("button").disabled = true;
   bubble("lead", `(form sent: ${body.service})`);
   const t0 = performance.now();
   try {
-    const { lead, reply } = await post("/api/leads", body);
+    const { lead, reply } = await post(`${api}/leads`, body);
     leadId = lead.id;
     bubble("agent", reply);
     bubble("agent", `⏱ replied in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
@@ -64,7 +79,7 @@ document.getElementById("reply").addEventListener("submit", async (e) => {
   const text = input.value.trim(); if (!text || !leadId) return;
   input.value = ""; bubble("lead", text);
   try {
-    const { reply } = await post(`/api/leads/${leadId}/messages`, { text });
+    const { reply } = await post(`${api}/leads/${leadId}/messages`, { text });
     if (reply) bubble("agent", reply);
   } catch (err) { bubble("agent", "Error: " + err.message); }
 });

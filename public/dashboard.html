@@ -6,8 +6,9 @@
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header><strong>Dashboard</strong><nav><a href="/">LeadBot</a><a href="/demo.html">Live demo</a></nav></header>
+<header><strong id="title">Dashboard</strong><nav><a href="/">LeadBot</a><a id="demo-link" href="/demo.html">Live demo</a></nav></header>
 <main>
+  <p id="picker-row" hidden><label for="picker">Business</label><select id="picker" class="picker"></select></p>
   <div class="grid">
     <div class="card"><div class="muted">Leads</div><div class="stat" id="s-leads">–</div></div>
     <div class="card"><div class="muted">Booked</div><div class="stat" id="s-booked">–</div></div>
@@ -20,22 +21,40 @@
   <div class="card table-wrap"><table><thead><tr><th>Received</th><th>Name</th><th>Phone</th><th>Service</th><th>Status</th><th>Last message</th></tr></thead><tbody id="leads"></tbody></table></div>
 </main>
 <script>
-const token = new URLSearchParams(location.search).get("token");
+const params = new URLSearchParams(location.search);
+const token = params.get("token");
+let slug = params.get("b");
 const get = (p) => fetch(p, { headers: token ? { authorization: "Bearer " + token } : {} }).then(r => r.ok ? r.json() : Promise.reject(r.status));
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]);
-async function load() {
+async function init() {
   try {
-    const [stats, leads, bookings] = await Promise.all([get("/api/admin/stats"), get("/api/admin/leads"), get("/api/admin/bookings")]);
+    const [health, list] = await Promise.all([fetch("/api/health").then(r => r.json()), get("/api/admin/businesses")]);
+    slug = slug || health.defaultBusiness;
+    const picker = document.getElementById("picker");
+    for (const b of list) { const o = document.createElement("option"); o.value = b.id; o.textContent = b.name; picker.append(o); }
+    picker.value = slug;
+    document.getElementById("picker-row").hidden = list.length < 2;
+    picker.addEventListener("change", () => { params.set("b", picker.value); location.search = params.toString(); });
+    const current = list.find(b => b.id === slug);
+    document.getElementById("title").textContent = (current ? current.name : slug) + " dashboard";
+    document.getElementById("demo-link").href = "/demo.html?b=" + encodeURIComponent(slug);
+  } catch (e) { slug = slug || ""; }
+  load(); setInterval(load, 5000);
+}
+async function load() {
+  const api = `/api/b/${encodeURIComponent(slug)}/admin`;
+  try {
+    const [stats, leads, bookings] = await Promise.all([get(`${api}/stats`), get(`${api}/leads`), get(`${api}/bookings`)]);
     document.getElementById("s-leads").textContent = stats.leads;
     document.getElementById("s-booked").textContent = stats.booked;
     document.getElementById("s-rate").textContent = Math.round(stats.bookingRate * 100) + "%";
     document.getElementById("s-speed").textContent = stats.avgFirstResponseMs == null ? "–" : (stats.avgFirstResponseMs / 1000).toFixed(1) + "s";
     const byId = Object.fromEntries(leads.map(l => [l.id, l]));
     document.getElementById("bookings").innerHTML = bookings.map(b => `<tr><td>${esc(b.slot)}</td><td>${esc(b.service)}</td><td>${esc(byId[b.leadId]?.name)}<br><span class="muted">${esc(byId[b.leadId]?.phone)}</span></td><td>${esc(b.notes)}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No bookings yet.</td></tr>`;
-    document.getElementById("leads").innerHTML = leads.map(l => `<tr><td>${new Date(l.createdAt).toLocaleString()}</td><td>${esc(l.name)}</td><td>${esc(l.phone)}</td><td>${esc(l.service)}</td><td><span class="pill ${l.status === "booked" ? "booked" : ""}">${esc(l.status)}</span></td><td>${esc(l.transcript.at(-1)?.text)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No leads yet. Try the <a href="/demo.html">demo</a>.</td></tr>`;
+    document.getElementById("leads").innerHTML = leads.map(l => `<tr><td>${new Date(l.createdAt).toLocaleString()}</td><td>${esc(l.name)}</td><td>${esc(l.phone)}</td><td>${esc(l.service)}</td><td><span class="pill ${l.status === "booked" ? "booked" : ""}">${esc(l.status)}</span></td><td>${esc(l.transcript.at(-1)?.text)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No leads yet. Try the <a href="/demo.html?b=${encodeURIComponent(slug)}">demo</a>.</td></tr>`;
   } catch (e) { document.getElementById("leads").innerHTML = `<tr><td colspan="6">Could not load (${e}). Add ?token=YOUR_ADMIN_TOKEN to the URL.</td></tr>`; }
 }
-load(); setInterval(load, 5000);
+init();
 </script>
 </body>
 </html>

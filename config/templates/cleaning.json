@@ -1,0 +1,64 @@
+{
+  "name": "{name}",
+  "agentName": "Riley",
+  "timezone": "{timezone}",
+  "phone": "{phone}",
+  "smsNumber": null,
+  "ownerPhone": null,
+  "serviceArea": [
+    "{city}"
+  ],
+  "services": [
+    {
+      "name": "Standard home cleaning",
+      "price": "quoted by home size",
+      "durationMinutes": 120
+    },
+    {
+      "name": "Deep cleaning",
+      "price": "quoted by home size",
+      "durationMinutes": 180
+    },
+    {
+      "name": "Move-in / move-out cleaning",
+      "price": "quoted by home size",
+      "durationMinutes": 240
+    },
+    {
+      "name": "Free walkthrough estimate",
+      "price": "free",
+      "durationMinutes": 30
+    }
+  ],
+  "hours": {
+    "mon": [
+      "08:00",
+      "17:00"
+    ],
+    "tue": [
+      "08:00",
+      "17:00"
+    ],
+    "wed": [
+      "08:00",
+      "17:00"
+    ],
+    "thu": [
+      "08:00",
+      "17:00"
+    ],
+    "fri": [
+      "08:00",
+      "17:00"
+    ],
+    "sat": [
+      "09:00",
+      "14:00"
+    ],
+    "sun": null
+  },
+  "slotMinutes": 180,
+  "emergencyNote": "For anything urgent, call {phone}.",
+  "bookingDaysAhead": 7,
+  "faq": []
+}

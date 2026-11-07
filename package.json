@@ -6,7 +6,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "new-client": "node scripts/new-client.js"
   },
   "engines": {
     "node": ">=20"

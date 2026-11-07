@@ -194,7 +194,7 @@ export class ScriptedAgent {
           const service = lead.service || "Service visit";
           const out = runTool("book_appointment", { slot, service, notes: lead.message }, ctx);
           if (typeof out === "string") {
-            return `You're booked for ${formatSlot(slot)}. Our tech will text when they're on the way. Reply here if anything changes!`;
+            return `You're booked for ${formatSlot(slot)}. We'll text you when we're on the way. Reply here if anything changes!`;
           }
         }
       }
@@ -207,10 +207,11 @@ export class ScriptedAgent {
     }
     store.updateLead(lead.id, { offeredSlots: slots });
     const options = slots.map((s, i) => `${i + 1}) ${formatSlot(s)}`).join("  ");
-    const opener = isForm
+    const firstContact = isForm || !lead.transcript.some((t) => t.role === "agent");
+    const opener = firstContact
       ? `Hi ${first}, this is ${business.agentName} with ${business.name}. Thanks for reaching out${lead.service ? ` about ${lead.service.toLowerCase()}` : ""}! `
       : "No problem! ";
-    return `${opener}We can get a tech out at: ${options}. Reply 1, 2 or 3 to book.`;
+    return `${opener}We have openings: ${options}. Reply 1, 2 or 3 to book.`;
   }
 }
 

@@ -1,0 +1,61 @@
+{
+  "name": "{name}",
+  "agentName": "Riley",
+  "timezone": "{timezone}",
+  "phone": "{phone}",
+  "smsNumber": null,
+  "ownerPhone": null,
+  "serviceArea": [
+    "{city}"
+  ],
+  "services": [
+    {
+      "name": "Drain cleaning",
+      "price": "quoted on site",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Leak repair",
+      "price": "quoted on site",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Water heater repair or replacement",
+      "price": "free estimate",
+      "durationMinutes": 90
+    },
+    {
+      "name": "Toilet or faucet repair",
+      "price": "quoted on site",
+      "durationMinutes": 60
+    }
+  ],
+  "hours": {
+    "mon": [
+      "08:00",
+      "17:00"
+    ],
+    "tue": [
+      "08:00",
+      "17:00"
+    ],
+    "wed": [
+      "08:00",
+      "17:00"
+    ],
+    "thu": [
+      "08:00",
+      "17:00"
+    ],
+    "fri": [
+      "08:00",
+      "17:00"
+    ],
+    "sat": null,
+    "sun": null
+  },
+  "slotMinutes": 120,
+  "emergencyNote": "For active flooding or a burst pipe, call {phone} right away.",
+  "bookingDaysAhead": 7,
+  "faq": []
+}

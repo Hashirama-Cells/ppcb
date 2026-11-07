@@ -1,10 +1,12 @@
 # LeadBot
 
-LeadBot texts back a local service business's new leads within seconds, answers their questions, and books them into an open appointment slot. Emergencies, upset customers and anything it can't handle go to a person.
+LeadBot texts back a local service business's new leads within seconds, answers their questions, and books them into an open appointment slot. Emergencies, upset customers and anything it can't handle go to the owner.
 
-You sell it to businesses like plumbers, HVAC companies and roofers for a setup fee plus a monthly fee. See [`docs/sales-playbook.md`](docs/sales-playbook.md) for how to find and sign customers.
+You sell it to businesses like plumbers, HVAC companies, roofers and cleaners for a setup fee plus a monthly fee. One LeadBot server can run many businesses. See [`docs/sales-playbook.md`](docs/sales-playbook.md) for how to find and sign customers.
 
-## Try it on your computer
+**Contents:** [Try it](#1-try-it-on-your-computer) · [Add a business](#2-add-a-business-or-make-a-prospects-demo) · [Put it online](#3-put-it-online-render) · [Real text messages](#4-real-text-messages-twilio) · [Settings](#settings) · [Connecting lead sources](#connecting-lead-sources)
+
+## 1. Try it on your computer
 
 You need [Node.js](https://nodejs.org) version 20 or newer.
 
@@ -13,62 +15,106 @@ npm install
 npm start
 ```
 
-Then open:
+The terminal lists a demo link for each business. Open:
 
-- http://localhost:3000/demo.html: pretend to be a customer. Fill in the form, then reply to the texts.
-- http://localhost:3000/dashboard.html: what the business owner sees (leads, bookings, booking rate, reply speed).
-- http://localhost:3000/: a sales page you can show prospects.
+- `http://localhost:3000/demo.html?b=summit-plumbing`: pretend to be a customer. Fill in the form, then reply to the texts.
+- `http://localhost:3000/dashboard.html`: what the owner sees (leads, bookings, booking rate, reply speed). Use the dropdown to switch businesses.
+- `http://localhost:3000/`: a sales page you can show prospects.
 
 Without an API key it runs in **scripted mode**: it sends fixed messages that offer three times and book the one picked. It's good enough to demo, but it can't answer questions.
 
-To get real AI replies, get an API key from https://console.anthropic.com and start it like this:
+To get real AI replies, get a key at https://console.anthropic.com and start it like this:
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-... npm start
 ```
 
-Then it uses Claude. It answers questions from the business's details, handles "can you come Tuesday afternoon instead?", and decides when to hand off to a person.
+## 2. Add a business (or make a prospect's demo)
 
-## Setting it up for a new client
+```bash
+npm run new-client -- --name "Peak Roofing" --niche roofing --phone "(555) 010-3300" --city Boulder --timezone America/Denver
+```
 
-Copy `config/business.json` and fill in their details:
+- **Niches:** `plumbing`, `hvac`, `roofing`, `cleaning`.
+- **Time zones:** `America/New_York`, `America/Chicago`, `America/Denver`, `America/Los_Angeles`.
 
-- name and phone
-- services and prices
-- service area
-- opening hours and time zone
-- how long a visit slot is (`slotMinutes`)
-- FAQ answers
+This creates `config/businesses/peak-roofing.json` and prints the demo link (`/demo.html?b=peak-roofing`). Before you show it to anyone:
 
-The AI only states facts from this file. Then run it with `BUSINESS_CONFIG=path/to/their.json`.
+1. Open the file and check the services, prices, opening hours and service area against their website. The templates say "quoted on site" or "free estimate" rather than guessing prices.
+2. Add true facts to `"faq"`, such as `"Family owned since 2009"` or `"We offer financing"`. **The assistant only states facts from this file.**
+3. Restart LeadBot. Once it's online, commit and push the file, and Render redeploys automatically.
 
-## Settings (environment variables)
+When they become a paying client, also fill in:
+- `"smsNumber"`: the Twilio number that texts their leads (see section 4).
+- `"ownerPhone"`: the owner's mobile. They get a text for every booking and every lead that needs them.
+
+## 3. Put it online (Render)
+
+You need this to send prospects a demo link, and for real clients.
+
+1. Make an account at https://render.com and connect your GitHub account.
+2. Click **New → Blueprint** and pick this repository. Render reads `render.yaml`.
+   - Choose the branch with this code, or merge it into `main` first.
+3. It asks for a few settings. You can leave the optional ones blank for now:
+   - `ANTHROPIC_API_KEY`: for real AI replies.
+   - `TWILIO_*`: for real texts.
+4. Click **Apply**. A few minutes later you get a web address like `https://leadbot-xxxx.onrender.com`.
+5. Open your service's **Environment** tab and copy the `ADMIN_TOKEN` that Render generated. Your dashboard is `https://leadbot-xxxx.onrender.com/dashboard.html?token=THAT_TOKEN`. Don't share that link.
+
+**Cost:** the blueprint uses Render's Starter plan (about $7/month) because saving leads needs a disk. The free plan works for demos, but it forgets leads whenever it restarts and is slow to wake up.
+
+There's also a `Dockerfile` if you'd rather host it elsewhere (Railway, Fly.io, a VPS). Mount a disk at `/data`.
+
+## 4. Real text messages (Twilio)
+
+1. Sign up at https://www.twilio.com and buy a local phone number (about $1–2/month).
+   - **Trial accounts can only text numbers you've verified.** Upgrade before a client goes live.
+2. **Register for A2P 10DLC** in the Twilio console (Messaging → Regulatory compliance). US carriers block business texts from unregistered numbers.
+   - Approval can take days to a few weeks, and there are small registration fees. Start this as soon as a client says yes.
+3. In Render, under **Environment**, set `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`. Both are on the Twilio console home page.
+4. In the client's business file, set `"smsNumber"` to the Twilio number and `"ownerPhone"` to the owner's mobile. Push the change.
+5. In Twilio, open the number's settings. Under **Messaging → A message comes in**, choose **Webhook**, enter `https://YOUR-APP.onrender.com/api/sms/inbound`, method **HTTP POST**. Save.
+6. Test it by texting the number from your own phone. You should get a reply within a few seconds.
+
+How LeadBot behaves once SMS is on:
+
+- **Form leads are only texted if they ticked the consent box.** The demo form has the standard wording; copy it onto the client's real form. Leads without consent are marked "needs human" and the owner is alerted to call them.
+- **Anyone who texts the number first counts as opted in.** They get a reply and become a lead.
+- **"STOP" opts the person out.** Twilio also blocks texts to them at the carrier level.
+- Incoming texts are checked against Twilio's signature, so nobody can fake them. If you use a custom domain, set `PUBLIC_URL` to it; on Render the address is detected automatically.
+
+## Settings
 
 | Variable | What it does |
 |---|---|
 | `ANTHROPIC_API_KEY` | Turns on AI replies. Without it, scripted mode. |
 | `LEADBOT_MODE` | Force `claude` or `scripted`. |
 | `LEADBOT_MODEL` | Claude model ID (default `claude-opus-5-5`). |
+| `ADMIN_TOKEN` | Password for the dashboard. **Always set this when online.** |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Turn on real texting. |
+| `PUBLIC_URL` | Your public address, e.g. `https://leads.example.com`. Optional on Render. |
+| `NOTIFY_WEBHOOK_URL` | Every event (new lead, booking, needs a person, opted out) is POSTed here as JSON. Use it for Zapier, Make, n8n or Slack. |
+| `DEFAULT_BUSINESS` | Which business `/demo.html` shows with no `?b=`. Defaults to the first alphabetically. |
 | `PORT` | Web port (default 3000). |
 | `DATA_FILE` | Where leads and bookings are saved (default `data/db.json`). |
-| `BUSINESS_CONFIG` | Which business file to load. |
-| `ADMIN_TOKEN` | Password for the dashboard. **Set this before going live.** Open the dashboard with `?token=...`. |
-| `NOTIFY_WEBHOOK_URL` | Every event (new lead, booking, needs a person, opted out) is POSTed here as JSON. Point it at Zapier, Make, n8n or Slack to text or email the owner. |
+| `BUSINESSES_DIR` / `BUSINESS_CONFIG` | Load businesses from another folder, or just one file. |
 
-## Connecting real lead sources
+## Connecting lead sources
 
-Anything that can send a webhook can create a lead:
+Each business has its own endpoints under `/api/b/<business>/`:
 
 ```
-POST /api/leads            {name, phone, email, service, message}  -> {lead, reply}
-POST /api/leads/:id/messages {text}                                -> {lead, reply}
+POST /api/b/<business>/leads                {name, phone, email, service, message, smsConsent}  -> {lead, reply}
+POST /api/b/<business>/leads/:id/messages   {text}                                              -> {lead, reply}
+POST /api/sms/inbound                       Twilio webhook (all businesses; matched by the "To" number)
 ```
 
-- **Website form:** set the form to POST to `/api/leads`. Form-encoded and JSON bodies both work.
-- **Facebook/Google lead ads:** use a Zapier or Make "new lead" trigger, then a webhook step to `/api/leads`.
-- **SMS (next step, not built yet):** a Twilio number whose incoming-message webhook calls `/api/leads/:id/messages`, plus sending `reply` back through Twilio.
+- **Website form:** POST the form to `/api/b/<business>/leads`. Form-encoded and JSON bodies both work. Include a consent checkbox named `smsConsent` with value `true`.
+- **Facebook/Google lead ads:** use a Zapier or Make "new lead" trigger, then a webhook step to the same address.
 
-Admin endpoints (need `ADMIN_TOKEN` when it's set): `GET /api/admin/leads`, `/api/admin/bookings`, `/api/admin/stats`, `/api/admin/slots`.
+Admin endpoints need `ADMIN_TOKEN` when it's set:
+- `GET /api/admin/businesses`
+- `GET /api/b/<business>/admin/leads`, `…/bookings`, `…/stats` and `…/slots`
 
 ## Tests
 
@@ -76,10 +122,10 @@ Admin endpoints (need `ADMIN_TOKEN` when it's set): `GET /api/admin/leads`, `/ap
 npm test
 ```
 
-The Claude path is tested against a fake API client, so the tests need no key.
+The Claude and Twilio parts are tested against fakes, so the tests need no keys or accounts.
 
-## Before a real paying client
+## Not built yet
 
-- [ ] **Real SMS through Twilio.** US business texting needs A2P 10DLC registration, and the form must have consent wording ("By submitting you agree to receive texts…"). "STOP" opt-outs are already handled.
-- [ ] **Booking into their real calendar or CRM** (Google Calendar, Jobber, Housecall Pro) instead of LeadBot's own slot list.
-- [ ] Set `ADMIN_TOKEN`, host it somewhere always on (Render, Railway, Fly.io or a $5 VPS), and back up `data/db.json`. Use a real database once you have several clients.
+- **Booking into the client's own calendar or CRM** (Google Calendar, Jobber, Housecall Pro). Today LeadBot keeps its own slot list, and the owner sees bookings on the dashboard and in alert texts.
+- **Missed-call text-back:** text people back when the owner misses their call. This is a good upsell.
+- **A real database.** The JSON file is fine for a handful of clients.

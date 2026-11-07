@@ -1,19 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import path from "node:path";
 import { Store } from "../src/store.js";
 import { ScriptedAgent, ClaudeAgent } from "../src/agent.js";
 import { LeadService } from "../src/leads.js";
-import { loadBusiness } from "../src/config.js";
-import { createServer } from "../src/server.js";
+import { loadBusiness, ROOT } from "../src/config.js";
+import { createServer, buildServices } from "../src/server.js";
 
-const business = loadBusiness();
+const business = loadBusiness(path.join(ROOT, "config", "businesses", "summit-plumbing.json"));
 const now = () => new Date("2026-11-09T16:30:00Z"); // Monday morning in Denver
 
 function setup(agent = new ScriptedAgent()) {
   const events = [];
   const store = new Store(null);
-  const service = new LeadService({ store, business, agent, now, notify: async (e) => events.push(e) });
-  return { store, service, events };
+  const service = new LeadService({ store: store.forBusiness(business.id), business, agent, now, notify: async (e) => events.push(e), smsEnabled: false });
+  return { store: service.store, service, events };
 }
 
 test("scripted: form lead gets slots, picks one, gets booked", async () => {
@@ -109,20 +110,30 @@ test("claude agent: refusal hands off to a human and keeps history valid", async
 });
 
 test("http: lead intake and reply endpoints", async () => {
-  const { service } = setup();
-  const server = createServer({ service, business }).listen(0);
+  const store = new Store(null);
+  const services = buildServices({ businesses: new Map([[business.id, business]]), store, agent: new ScriptedAgent(), notify: async () => {}, smsEnabled: false, now });
+  const server = createServer({ services, defaultId: business.id, env: {} }).listen(0);
   const base = `http://127.0.0.1:${server.address().port}`;
+  const api = `${base}/api/b/${business.id}`;
   try {
-    let r = await fetch(`${base}/api/leads`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "Kim", phone: "555", service: "Leak repair" }) });
+    let r = await fetch(`${base}/api/health`);
+    assert.equal((await r.json()).defaultBusiness, "summit-plumbing");
+    r = await fetch(`${api}/business`);
+    assert.equal((await r.json()).name, business.name);
+    r = await fetch(`${api}/leads`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "Kim", phone: "555", service: "Leak repair" }) });
     assert.equal(r.status, 201);
     const { lead } = await r.json();
     assert.equal(lead.apiMessages, undefined);
-    r = await fetch(`${base}/api/leads/${lead.id}/messages`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "1" }) });
+    r = await fetch(`${api}/leads/${lead.id}/messages`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "1" }) });
     assert.match((await r.json()).reply, /booked/);
-    r = await fetch(`${base}/api/leads`, { method: "POST", body: "{bad" });
+    r = await fetch(`${api}/leads`, { method: "POST", body: "{bad" });
     assert.equal(r.status, 400);
-    r = await fetch(`${base}/api/admin/stats`);
+    r = await fetch(`${api}/admin/stats`);
     assert.equal((await r.json()).booked, 1);
+    r = await fetch(`${base}/api/admin/businesses`);
+    assert.deepEqual((await r.json()).map((b) => b.id), ["summit-plumbing"]);
+    r = await fetch(`${base}/api/b/nope/business`);
+    assert.equal(r.status, 404);
   } finally {
     server.close();
   }

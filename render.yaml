@@ -1,0 +1,30 @@
+# One-click deploy on Render: Dashboard -> New -> Blueprint -> pick this repo.
+# The persistent disk needs a paid instance (Starter, about $7/month). On the free plan,
+# leads and bookings are wiped whenever the service restarts.
+services:
+  - type: web
+    name: leadbot
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: node src/server.js
+    healthCheckPath: /api/health
+    disk:
+      name: leadbot-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_FILE
+        value: /data/db.json
+      - key: ADMIN_TOKEN # dashboard password; Render generates a random one you can copy
+        generateValue: true
+      - key: ANTHROPIC_API_KEY # optional: real AI replies instead of scripted ones
+        sync: false
+      - key: TWILIO_ACCOUNT_SID # optional: real text messages
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: NOTIFY_WEBHOOK_URL # optional: Zapier/Make/n8n/Slack webhook for events
+        sync: false
