@@ -1,0 +1,71 @@
+{
+  "name": "Blue Ribbon Roofing & Roof Repairs",
+  "agentName": "Riley",
+  "timezone": "America/New_York",
+  "phone": "(910) 483-7663",
+  "smsNumber": null,
+  "ownerPhone": null,
+  "serviceArea": [
+    "Fayetteville",
+    "Hope Mills",
+    "Gray's Creek",
+    "Raeford",
+    "Cumberland County"
+  ],
+  "services": [
+    {
+      "name": "Roof repair",
+      "price": "quoted after inspection",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Roof replacement",
+      "price": "quoted after inspection",
+      "durationMinutes": 90
+    },
+    {
+      "name": "Drone roof inspection",
+      "price": "ask for details",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Commercial roofing",
+      "price": "quoted after inspection",
+      "durationMinutes": 90
+    }
+  ],
+  "hours": {
+    "mon": [
+      "08:00",
+      "17:00"
+    ],
+    "tue": [
+      "08:00",
+      "17:00"
+    ],
+    "wed": [
+      "08:00",
+      "17:00"
+    ],
+    "thu": [
+      "08:00",
+      "17:00"
+    ],
+    "fri": [
+      "08:00",
+      "17:00"
+    ],
+    "sat": null,
+    "sun": null
+  },
+  "slotMinutes": 120,
+  "emergencyNote": "For an active leak during a storm, call (910) 483-7663 and we'll help you get it tarped.",
+  "bookingDaysAhead": 7,
+  "faq": [
+    "Same-day scheduling is available for roof repairs.",
+    "Financing is available for qualifying residential projects.",
+    "Repairs are done to Owens Corning manufacturer specifications.",
+    "Locally owned by Lewis and Heather Hardin. Office: 1740 Owen Dr, Suite C, Fayetteville, NC."
+  ],
+  "demo": true
+}

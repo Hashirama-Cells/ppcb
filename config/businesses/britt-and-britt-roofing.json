@@ -1,0 +1,64 @@
+{
+  "name": "Britt & Britt Roofing",
+  "agentName": "Riley",
+  "timezone": "America/New_York",
+  "phone": "(910) 738-1085",
+  "smsNumber": null,
+  "ownerPhone": null,
+  "serviceArea": [
+    "Lumberton and the surrounding area"
+  ],
+  "services": [
+    {
+      "name": "Roof inspection",
+      "price": "free estimate",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Leak repair",
+      "price": "quoted after inspection",
+      "durationMinutes": 60
+    },
+    {
+      "name": "Roof replacement estimate",
+      "price": "free estimate",
+      "durationMinutes": 90
+    },
+    {
+      "name": "Storm or hail damage check",
+      "price": "free inspection",
+      "durationMinutes": 60
+    }
+  ],
+  "hours": {
+    "mon": [
+      "08:00",
+      "17:00"
+    ],
+    "tue": [
+      "08:00",
+      "17:00"
+    ],
+    "wed": [
+      "08:00",
+      "17:00"
+    ],
+    "thu": [
+      "08:00",
+      "17:00"
+    ],
+    "fri": [
+      "08:00",
+      "17:00"
+    ],
+    "sat": null,
+    "sun": null
+  },
+  "slotMinutes": 120,
+  "emergencyNote": "For an active leak during a storm, call (910) 738-1085 and we'll help you get it tarped.",
+  "bookingDaysAhead": 7,
+  "faq": [
+    "Our office is at 751 E 13th St, Lumberton, NC."
+  ],
+  "demo": true
+}

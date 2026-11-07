@@ -18,6 +18,8 @@ services:
         value: "22"
       - key: DATA_FILE
         value: /data/db.json
+      - key: DEFAULT_BUSINESS # the made-up sample business, used when a link has no ?b=
+        value: summit-plumbing
       - key: TRUST_PROXY # read the visitor's address from Render's proxy (for rate limits)
         value: "true"
       - key: ADMIN_TOKEN # dashboard password; Render generates a random one you can copy
