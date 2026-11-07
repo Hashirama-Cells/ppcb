@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeadBot Live Demo</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header><strong id="biz">Demo business</strong><nav><a href="/">LeadBot</a><a href="/dashboard.html">Dashboard</a></nav></header>
+<main>
+  <p class="muted">You're a customer on this business's website. Fill in the form and the agent texts you back. The chat stands in for SMS.</p>
+  <div class="grid">
+    <form id="form" class="card">
+      <h3>Request service</h3>
+      <label for="name">Name</label><input id="name" name="name" required value="Jordan Lee">
+      <label for="phone">Phone</label><input id="phone" name="phone" required value="(555) 010-7788">
+      <label for="service">Service</label><select id="service" name="service"></select>
+      <label for="message">What's going on?</label><textarea id="message" name="message" rows="3">Kitchen sink is draining really slowly.</textarea>
+      <p><button class="btn" type="submit">Send</button></p>
+    </form>
+    <div class="card">
+      <h3>Text messages</h3>
+      <div id="chat" class="chat" aria-live="polite"></div>
+      <form id="reply" class="row"><input id="text" placeholder="Reply…" autocomplete="off" disabled><button class="btn" disabled>Send</button></form>
+    </div>
+  </div>
+</main>
+<script>
+const chat = document.getElementById("chat");
+let leadId = null;
+function bubble(role, text) {
+  const d = document.createElement("div");
+  d.className = "bubble " + role; d.textContent = text;
+  chat.append(d); chat.scrollTop = chat.scrollHeight;
+}
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "request failed");
+  return data;
+}
+fetch("/api/business").then(r => r.json()).then(b => {
+  document.getElementById("biz").textContent = b.name;
+  document.getElementById("service").innerHTML = b.services.map(s => `<option>${s.name}</option>`).join("");
+});
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData(e.target));
+  e.target.querySelector("button").disabled = true;
+  bubble("lead", `(form sent: ${body.service})`);
+  const t0 = performance.now();
+  try {
+    const { lead, reply } = await post("/api/leads", body);
+    leadId = lead.id;
+    bubble("agent", reply);
+    bubble("agent", `⏱ replied in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
+    document.querySelectorAll("#reply input, #reply button").forEach(el => el.disabled = false);
+    document.getElementById("text").focus();
+  } catch (err) { bubble("agent", "Error: " + err.message); e.target.querySelector("button").disabled = false; }
+});
+document.getElementById("reply").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("text");
+  const text = input.value.trim(); if (!text || !leadId) return;
+  input.value = ""; bubble("lead", text);
+  try {
+    const { reply } = await post(`/api/leads/${leadId}/messages`, { text });
+    if (reply) bubble("agent", reply);
+  } catch (err) { bubble("agent", "Error: " + err.message); }
+});
+</script>
+</body>
+</html>

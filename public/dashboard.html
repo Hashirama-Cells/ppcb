@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeadBot Dashboard</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header><strong>Dashboard</strong><nav><a href="/">LeadBot</a><a href="/demo.html">Live demo</a></nav></header>
+<main>
+  <div class="grid">
+    <div class="card"><div class="muted">Leads</div><div class="stat" id="s-leads">–</div></div>
+    <div class="card"><div class="muted">Booked</div><div class="stat" id="s-booked">–</div></div>
+    <div class="card"><div class="muted">Booking rate</div><div class="stat" id="s-rate">–</div></div>
+    <div class="card"><div class="muted">Avg first reply</div><div class="stat" id="s-speed">–</div></div>
+  </div>
+  <h2>Upcoming bookings</h2>
+  <div class="card table-wrap"><table><thead><tr><th>When</th><th>Service</th><th>Customer</th><th>Notes</th></tr></thead><tbody id="bookings"></tbody></table></div>
+  <h2>Leads</h2>
+  <div class="card table-wrap"><table><thead><tr><th>Received</th><th>Name</th><th>Phone</th><th>Service</th><th>Status</th><th>Last message</th></tr></thead><tbody id="leads"></tbody></table></div>
+</main>
+<script>
+const token = new URLSearchParams(location.search).get("token");
+const get = (p) => fetch(p, { headers: token ? { authorization: "Bearer " + token } : {} }).then(r => r.ok ? r.json() : Promise.reject(r.status));
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]);
+async function load() {
+  try {
+    const [stats, leads, bookings] = await Promise.all([get("/api/admin/stats"), get("/api/admin/leads"), get("/api/admin/bookings")]);
+    document.getElementById("s-leads").textContent = stats.leads;
+    document.getElementById("s-booked").textContent = stats.booked;
+    document.getElementById("s-rate").textContent = Math.round(stats.bookingRate * 100) + "%";
+    document.getElementById("s-speed").textContent = stats.avgFirstResponseMs == null ? "–" : (stats.avgFirstResponseMs / 1000).toFixed(1) + "s";
+    const byId = Object.fromEntries(leads.map(l => [l.id, l]));
+    document.getElementById("bookings").innerHTML = bookings.map(b => `<tr><td>${esc(b.slot)}</td><td>${esc(b.service)}</td><td>${esc(byId[b.leadId]?.name)}<br><span class="muted">${esc(byId[b.leadId]?.phone)}</span></td><td>${esc(b.notes)}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No bookings yet.</td></tr>`;
+    document.getElementById("leads").innerHTML = leads.map(l => `<tr><td>${new Date(l.createdAt).toLocaleString()}</td><td>${esc(l.name)}</td><td>${esc(l.phone)}</td><td>${esc(l.service)}</td><td><span class="pill ${l.status === "booked" ? "booked" : ""}">${esc(l.status)}</span></td><td>${esc(l.transcript.at(-1)?.text)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No leads yet. Try the <a href="/demo.html">demo</a>.</td></tr>`;
+  } catch (e) { document.getElementById("leads").innerHTML = `<tr><td colspan="6">Could not load (${e}). Add ?token=YOUR_ADMIN_TOKEN to the URL.</td></tr>`; }
+}
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>
