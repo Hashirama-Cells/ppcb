@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { Store } from "../src/store.js";
-import { ScriptedAgent, ClaudeAgent } from "../src/agent.js";
+import { ScriptedAgent, ClaudeAgent, FallbackAgent } from "../src/agent.js";
 import { LeadService } from "../src/leads.js";
 import { loadBusiness, ROOT } from "../src/config.js";
 import { createServer, buildServices } from "../src/server.js";
@@ -137,4 +137,15 @@ test("http: lead intake and reply endpoints", async () => {
   } finally {
     server.close();
   }
+});
+
+test("if Claude fails, the customer still gets a scripted reply", async () => {
+  const client = { beta: { messages: { create: async () => { throw new Error("401 invalid x-api-key"); } } } };
+  const { service } = setup(new FallbackAgent(new ClaudeAgent({ client })));
+  const { lead, reply } = await service.intake({ name: "Kim", phone: "555", service: "Leak repair" });
+  assert.match(reply, /^Hi Kim, this is Riley/);
+  assert.equal(lead.apiMessages.length, 0);
+  assert.match(lead.aiError, /invalid x-api-key/);
+  const r2 = await service.message(lead.id, "1");
+  assert.match(r2.reply, /You're booked/);
 });

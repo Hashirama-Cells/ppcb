@@ -226,6 +226,28 @@ export class ScriptedAgent {
   }
 }
 
+// Uses Claude, but if a call fails (bad key, Anthropic down, spend limit reached) the
+// customer still gets the scripted reply instead of an error.
+export class FallbackAgent {
+  constructor(primary, backup = new ScriptedAgent()) {
+    this.primary = primary;
+    this.backup = backup;
+  }
+
+  async respond(ctx, userText) {
+    const { lead, store } = ctx;
+    const saved = lead.apiMessages.length;
+    try {
+      return await this.primary.respond(ctx, userText);
+    } catch (err) {
+      console.error(`[agent] AI reply failed for lead ${lead.id}, sending scripted reply instead: ${err.message}`);
+      lead.apiMessages.length = saved; // keep the Claude history valid for next time
+      store.updateLead(lead.id, { apiMessages: lead.apiMessages, aiError: err.message });
+      return this.backup.respond(ctx, userText);
+    }
+  }
+}
+
 export function createAgent(mode = detectMode()) {
-  return mode === "claude" ? new ClaudeAgent() : new ScriptedAgent();
+  return mode === "claude" ? new FallbackAgent(new ClaudeAgent()) : new ScriptedAgent();
 }
