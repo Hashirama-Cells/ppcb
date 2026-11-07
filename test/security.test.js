@@ -22,7 +22,9 @@ test("a customer can only book one appointment (scripted)", async () => {
   const { lead } = await service.intake({ name: "Kim", phone: "5550100011" });
   await service.message(lead.id, "1");
   const again = await service.message(lead.id, "2");
-  assert.match(again.reply, /To change or cancel, call us/);
+  assert.doesNotMatch(again.reply, /You're booked for Mon, Nov 9, 2:00 PM/);
+  assert.equal(service.store.listBookings().length, 1);
+  assert.match((await service.message(lead.id, "2")).reply, /To change or cancel, call us/);
   assert.equal(service.store.listBookings().length, 1);
 });
 

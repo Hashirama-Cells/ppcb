@@ -40,7 +40,7 @@ npm run new-client -- --name "Peak Roofing" --niche roofing --phone "(555) 010-3
 
 This creates `config/businesses/peak-roofing.json` and prints the demo link (`/demo.html?b=peak-roofing`). Before you show it to anyone:
 
-1. Open the file and check the services, prices, opening hours and service area against their website. The templates say "quoted on site" or "free estimate" rather than guessing prices.
+1. Open the file and check the services, prices, opening hours and service area against their website. The templates say "quoted on site" or "ask us for a quote" rather than guessing prices or promising anything free.
 2. Add true facts to `"faq"`, such as `"Family owned since 2009"` or `"We offer financing"`. **The assistant only states facts from this file.**
 3. Restart LeadBot. Once it's online, commit and push the file, and Render redeploys automatically.
 

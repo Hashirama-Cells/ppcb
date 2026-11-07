@@ -46,7 +46,7 @@ export class Store {
       updateLead: (id, patch) => (this.getLeadFor(businessId, id) ? store.updateLead(id, patch) : null),
       getLead: (id) => this.getLeadFor(businessId, id),
 
-      createLead({ name, phone, email, service, message, source, smsConsent }) {
+      createLead({ name, phone, email, address, service, message, source, smsConsent }) {
         const clip = (v, n) => String(v || "").trim().slice(0, n);
         const lead = {
           id: crypto.randomUUID(),
@@ -55,6 +55,7 @@ export class Store {
           phone: clip(phone, 40),
           email: clip(email, 200),
           service: clip(service, 100),
+          address: clip(address, 200),
           message: clip(message, 2000),
           source: source || "web-form",
           smsConsent: smsConsent === true || smsConsent === "true" || smsConsent === "on",
@@ -84,6 +85,14 @@ export class Store {
         }
         const booking = { id: crypto.randomUUID(), businessId, leadId, slot, service, notes: notes || "", createdAt: new Date().toISOString() };
         store.data.bookings.push(booking);
+        store.save();
+        return booking;
+      },
+
+      updateBooking(id, patch) {
+        const booking = store.data.bookings.find((b) => b.id === id && mine(b));
+        if (!booking) return null;
+        Object.assign(booking, patch);
         store.save();
         return booking;
       },

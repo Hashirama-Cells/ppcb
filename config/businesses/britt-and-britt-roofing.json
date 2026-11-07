@@ -11,7 +11,7 @@
   "services": [
     {
       "name": "Roof inspection",
-      "price": "free estimate",
+      "price": "ask us for a quote",
       "durationMinutes": 60
     },
     {
@@ -21,12 +21,12 @@
     },
     {
       "name": "Roof replacement estimate",
-      "price": "free estimate",
+      "price": "ask us for a quote",
       "durationMinutes": 90
     },
     {
       "name": "Storm or hail damage check",
-      "price": "free inspection",
+      "price": "ask us for a quote",
       "durationMinutes": 60
     }
   ],

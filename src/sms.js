@@ -73,7 +73,9 @@ export function ownerAlertText(event, business) {
   const who = event.lead ? `${event.lead.name || "Someone"} ${event.lead.phone || ""}`.trim() : "A lead";
   switch (event.type) {
     case "booking.created":
-      return `New booking: ${who}, ${event.booking.service} at ${event.booking.slot}. (${business.name} LeadBot)`;
+      return `New booking: ${who}, ${event.booking.service} at ${event.booking.slot}${event.booking.address ? `, ${event.booking.address}` : ""}. (${business.name} LeadBot)`;
+    case "booking.updated":
+      return `Address for ${who}'s visit (${event.booking.slot}): ${event.booking.address}`;
     case "lead.needs_human":
       return `Needs you: ${who}. Reason: ${event.reason || "asked for a person"}. Please call them.`;
     case "lead.not_a_fit":

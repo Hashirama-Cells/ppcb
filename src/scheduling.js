@@ -1,7 +1,7 @@
 // Appointment slots in the business's local time, formatted "YYYY-MM-DD HH:MM".
-const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+export const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
-function localParts(date, timeZone) {
+export function localParts(date, timeZone) {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric", month: "2-digit", day: "2-digit",
@@ -17,7 +17,7 @@ const toMin = (hhmm) => {
 };
 const toHHMM = (min) => `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 
-function addDays(ymd, n) {
+export function addDays(ymd, n) {
   const d = new Date(`${ymd}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
