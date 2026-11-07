@@ -91,7 +91,7 @@ function adminDenied(req, url, env) {
 }
 
 const publicLead = (l) => ({ id: l.id, name: l.name, status: l.status, transcript: l.transcript });
-const publicBusiness = ({ id, name, agentName, phone, services, serviceArea }) => ({ id, name, agentName, phone, services, serviceArea });
+const publicBusiness = ({ id, name, agentName, phone, services, serviceArea, demo }) => ({ id, name, agentName, phone, services, serviceArea, demo: demo === true });
 
 // services: Map of business id -> LeadService
 export function createServer({ services, defaultId, env = process.env, limits = {} }) {

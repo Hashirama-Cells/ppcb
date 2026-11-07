@@ -44,7 +44,7 @@ This creates `config/businesses/peak-roofing.json` and prints the demo link (`/d
 2. Add true facts to `"faq"`, such as `"Family owned since 2009"` or `"We offer financing"`. **The assistant only states facts from this file.**
 3. Restart LeadBot. Once it's online, commit and push the file, and Render redeploys automatically.
 
-When they become a paying client, also fill in:
+New businesses start with `"demo": true`. Their demo page says clearly that it's a demo not run by them, and it never sends real texts. When they become a paying client, change it to `"demo": false` and also fill in:
 - `"smsNumber"`: the Twilio number that texts their leads (see section 4).
 - `"ownerPhone"`: the owner's mobile. They get a text for every booking and every lead that needs them.
 

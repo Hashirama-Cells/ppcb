@@ -32,6 +32,7 @@ test("createClientConfig fills the template and refuses to overwrite", () => {
   assert.equal(config.name, "Peak Roofing");
   assert.deepEqual(config.serviceArea, ["Boulder"]);
   assert.match(config.emergencyNote, /\(555\) 010-3300/);
+  assert.equal(config.demo, true);
   assert.equal(JSON.parse(fs.readFileSync(file, "utf8")).timezone, "America/Denver");
   assert.throws(() => createClientConfig(opts, { businessesDir: dir }), /already exists/);
   assert.doesNotThrow(() => createClientConfig({ ...opts, force: true }, { businessesDir: dir }));

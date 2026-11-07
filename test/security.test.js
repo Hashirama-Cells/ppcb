@@ -78,7 +78,7 @@ test("foreign numbers are not texted unless allowed", async () => {
   assert.match(r.reason, /country not allowed/);
   assert.equal(called, false);
 
-  const { service, sent } = svc({ biz: { ...business, smsNumber: "+15550100001" }, smsEnabled: true });
+  const { service, sent } = svc({ biz: { ...business, demo: false, smsNumber: "+15550100001" }, smsEnabled: true });
   const { lead } = await service.intake({ name: "Pump", phone: "+447700900123", smsConsent: true });
   assert.equal(lead.status, "needs_human");
   assert.match(lead.statusReason, /outside the allowed countries/);

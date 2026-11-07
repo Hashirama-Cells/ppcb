@@ -32,3 +32,4 @@ footer { padding-top:48px; padding-bottom:32px; color:var(--muted); font-size:14
 .consent { display:flex; gap:8px; align-items:flex-start; font-weight:400; font-size:14px; color:var(--muted); }
 .consent input { width:auto; margin-top:4px; }
 .picker { max-width:320px; }
+.banner { background:var(--lead); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:14px; }

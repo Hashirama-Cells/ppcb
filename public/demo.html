@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LeadBot Live Demo</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <header><strong id="biz">Loading…</strong><nav><a href="/">LeadBot</a></nav></header>
 <main>
+  <p id="demo-banner" class="banner" hidden></p>
   <p class="muted">You're a customer on this business's website. Fill in the form and the agent texts you back. The chat stands in for SMS.</p>
   <div class="grid">
     <form id="form" class="card">
@@ -48,6 +50,11 @@ async function post(url, body) {
   if (!r.ok) { document.getElementById("biz").textContent = "Unknown business: " + slug; return; }
   const b = await r.json();
   document.title = `${b.name} – LeadBot demo`;
+  if (b.demo) {
+    const banner = document.getElementById("demo-banner");
+    banner.textContent = `Demo made to show ${b.name} how LeadBot would work for them. It isn't run by ${b.name}, and nothing here books a real appointment or sends a real text.`;
+    banner.hidden = false;
+  }
   document.getElementById("biz").textContent = b.name;
   document.querySelectorAll(".biz-name").forEach(el => el.textContent = b.name);
   const sel = document.getElementById("service");

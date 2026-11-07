@@ -18,7 +18,10 @@ export class LeadService {
   // notify: async (event) => {}; e.g. the NOTIFY_WEBHOOK_URL poster
   constructor({ store, business, agent, notify = async () => {}, sms = sendSms, smsEnabled, now }) {
     Object.assign(this, { store, business, agent, notify, sms, now: now || (() => new Date()) });
-    this.smsEnabled = smsEnabled ?? (twilioConfigured() && Boolean(normalizePhone(business.smsNumber)));
+    // A demo business (the default) never texts anyone, whatever else is configured.
+    this.smsEnabled = business.demo === true
+      ? false
+      : smsEnabled ?? (twilioConfigured() && Boolean(normalizePhone(business.smsNumber)));
     this.limits = { ...DEFAULT_LIMITS, ...(business.limits || {}) };
   }
 

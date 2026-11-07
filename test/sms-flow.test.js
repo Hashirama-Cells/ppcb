@@ -9,8 +9,8 @@ import { createServer, buildServices } from "../src/server.js";
 import { twilioSignature } from "../src/sms.js";
 
 const base = loadBusiness(path.join(ROOT, "config", "businesses", "summit-plumbing.json"));
-const business = { ...base, smsNumber: "+15550100001", ownerPhone: "(555) 010-9999" };
-const other = { ...base, id: "other-co", name: "Other Co", smsNumber: "+15550100002", ownerPhone: null };
+const business = { ...base, demo: false, smsNumber: "+15550100001", ownerPhone: "(555) 010-9999" };
+const other = { ...base, demo: false, id: "other-co", name: "Other Co", smsNumber: "+15550100002", ownerPhone: null };
 const now = () => new Date("2026-11-09T16:30:00Z");
 
 function fakeSms() {
@@ -124,4 +124,13 @@ test("http: Twilio webhook checks the signature, answers TwiML and texts the rep
   } finally {
     server.close();
   }
+});
+
+test("demo businesses never text, even with SMS turned on", async () => {
+  const { svc, sent } = service({ biz: { ...business, demo: true } });
+  const { lead } = await svc.intake({ name: "Kim", phone: "(555) 010-7788", smsConsent: true });
+  await svc.message(lead.id, "1");
+  assert.equal(svc.smsEnabled, false);
+  assert.equal(sent.length, 0);
+  assert.equal(svc.store.listBookings().length, 1); // the demo still works on the page
 });

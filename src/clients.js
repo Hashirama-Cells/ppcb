@@ -34,6 +34,8 @@ export function createClientConfig(
   const template = JSON.parse(fs.readFileSync(path.join(templatesDir, `${niche}.json`), "utf8"));
   const config = fill(template, { name, phone, city, timezone });
   if (agentName) config.agentName = agentName;
+  // Prospect demos are labeled as demos and never send real texts. Set to false once they're a paying client.
+  config.demo = true;
 
   const file = path.join(businessesDir, `${id}.json`);
   if (fs.existsSync(file) && !force) throw new Error(`${path.relative(process.cwd(), file)} already exists (pass --force to replace it)`);
