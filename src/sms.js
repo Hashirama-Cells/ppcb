@@ -14,6 +14,14 @@ export function normalizePhone(raw) {
   return null;
 }
 
+// Only text numbers in these country codes (default "1" = US/Canada). Blocks "SMS pumping",
+// where attackers submit forms with expensive foreign numbers to run up your Twilio bill.
+export function smsAllowed(e164, env = process.env) {
+  if (!e164) return false;
+  const codes = String(env.SMS_ALLOWED_COUNTRY_CODES || "1").split(",").map((c) => c.trim()).filter(Boolean);
+  return codes.some((c) => e164.startsWith(`+${c}`));
+}
+
 export function twilioConfigured(env = process.env) {
   return Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN);
 }
@@ -28,6 +36,7 @@ export async function sendSms({ to, from, body }, { env = process.env, fetch: do
   }
   if (!fromE164) return { sent: false, reason: "business has no smsNumber" };
   if (!toE164) return { sent: false, reason: `invalid phone ${to}` };
+  if (!smsAllowed(toE164, env)) return { sent: false, reason: `country not allowed for ${toE164} (see SMS_ALLOWED_COUNTRY_CODES)` };
 
   const sid = env.TWILIO_ACCOUNT_SID;
   const res = await doFetch(`https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`, {

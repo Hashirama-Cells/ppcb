@@ -4,7 +4,7 @@ LeadBot texts back a local service business's new leads within seconds, answers 
 
 You sell it to businesses like plumbers, HVAC companies, roofers and cleaners for a setup fee plus a monthly fee. One LeadBot server can run many businesses. See [`docs/sales-playbook.md`](docs/sales-playbook.md) for how to find and sign customers.
 
-**Contents:** [Try it](#1-try-it-on-your-computer) · [Add a business](#2-add-a-business-or-make-a-prospects-demo) · [Put it online](#3-put-it-online-render) · [Real text messages](#4-real-text-messages-twilio) · [Settings](#settings) · [Connecting lead sources](#connecting-lead-sources)
+**Contents:** [Try it](#1-try-it-on-your-computer) · [Add a business](#2-add-a-business-or-make-a-prospects-demo) · [Put it online](#3-put-it-online-render) · [Real text messages](#4-real-text-messages-twilio) · [Keeping it safe](#5-keeping-it-safe) · [Settings](#settings) · [Connecting lead sources](#connecting-lead-sources)
 
 ## 1. Try it on your computer
 
@@ -83,6 +83,32 @@ How LeadBot behaves once SMS is on:
 - **"STOP" opts the person out.** Twilio also blocks texts to them at the carrier level.
 - Incoming texts are checked against Twilio's signature, so nobody can fake them. If you use a custom domain, set `PUBLIC_URL` to it; on Render the address is detected automatically.
 
+## 5. Keeping it safe
+
+**Built in:**
+
+| Risk | Protection |
+|---|---|
+| Someone floods the form to run up your AI bill | 5 new leads per visitor per 10 minutes; 100 new leads per business per day; 30 messages per customer, then the owner takes over |
+| Someone enters a stranger's number to harass them | At most 3 leads per phone number per day, and only people who ticked the consent box are texted |
+| "SMS pumping" fraud with expensive foreign numbers | Only US/Canada (+1) numbers are texted unless you set `SMS_ALLOWED_COUNTRY_CODES` |
+| Fake incoming texts | Every incoming text must carry Twilio's signature; none are accepted until `TWILIO_AUTH_TOKEN` is set |
+| Strangers reading your leads | The dashboard needs `ADMIN_TOKEN`, and online it refuses to open without one |
+| A customer tells the AI to "ignore your rules" | The AI can only offer and book real slots (one per customer) or flag the lead; it's told to ignore instructions in customer messages |
+| Reading files off the server | Only files in `public/` are served |
+
+You can change a business's limits in its file, e.g. `"limits": { "leadsPerDay": 300 }`.
+
+**Your part:**
+
+1. **Turn on two-step login** for GitHub, Render, Anthropic and Twilio. Someone who gets into one of these accounts can do far more damage than any attack on the app.
+2. **Set spending limits:**
+   - Anthropic: console → Billing → set a monthly limit (start at $20).
+   - Twilio: set usage alerts, and under Messaging → Geo permissions, allow only the US and Canada.
+3. **Never paste keys or tokens into code, chats, emails or GitHub.** They belong only in Render's Environment tab. If one leaks, make a new one at the provider and delete the old one.
+4. **Keep the dashboard link private.** It contains your password, and one link opens every business. Send clients their numbers rather than the link.
+5. **Customer data is personal information.** Don't copy it anywhere else, and delete a client's leads if they leave.
+
 ## Settings
 
 | Variable | What it does |
@@ -93,6 +119,8 @@ How LeadBot behaves once SMS is on:
 | `ADMIN_TOKEN` | Password for the dashboard. **Always set this when online.** |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Turn on real texting. |
 | `PUBLIC_URL` | Your public address, e.g. `https://leads.example.com`. Optional on Render. |
+| `SMS_ALLOWED_COUNTRY_CODES` | Country codes LeadBot may text, comma-separated (default `1`, US/Canada). |
+| `TRUST_PROXY` | Set to `true` behind a hosting proxy so rate limits see real visitor addresses (already set in `render.yaml`). |
 | `NOTIFY_WEBHOOK_URL` | Every event (new lead, booking, needs a person, opted out) is POSTed here as JSON. Use it for Zapier, Make, n8n or Slack. |
 | `DEFAULT_BUSINESS` | Which business `/demo.html` shows with no `?b=`. Defaults to the first alphabetically. |
 | `PORT` | Web port (default 3000). |

@@ -47,14 +47,15 @@ export class Store {
       getLead: (id) => this.getLeadFor(businessId, id),
 
       createLead({ name, phone, email, service, message, source, smsConsent }) {
+        const clip = (v, n) => String(v || "").trim().slice(0, n);
         const lead = {
           id: crypto.randomUUID(),
           businessId,
-          name: String(name || "").trim(),
-          phone: String(phone || "").trim(),
-          email: String(email || "").trim(),
-          service: String(service || "").trim(),
-          message: String(message || "").trim(),
+          name: clip(name, 100),
+          phone: clip(phone, 40),
+          email: clip(email, 200),
+          service: clip(service, 100),
+          message: clip(message, 2000),
           source: source || "web-form",
           smsConsent: smsConsent === true || smsConsent === "true" || smsConsent === "on",
           status: "new",
